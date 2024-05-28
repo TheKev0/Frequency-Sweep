@@ -1,5 +1,18 @@
 # Developemnt Notes
 
+## User Needs
+
+- Measure frequency response by inputting the start/stop frequency, and step size.
+- Plot and save the frequency response.
+  - Plot in GUI and save via screenshot?
+  - Output HTML file and view in browser?
+- Output the measured data (frequencies and amplitudes) in raw form.
+  - Print to console?
+  - Write csv file?
+- Easy setup
+  - Windows Python installer?
+- Readme for Devs
+
 ## General Setup
 
 - First I installed [National Instruments NI-VISA Software](https://www.ni.com/en/support/downloads/drivers/download.ni-visa.html#521671)
@@ -8,7 +21,7 @@
 
 ## Python setup
 
-- Create or activate venv: https://python.land/virtual-environments/virtualenv
+- Create and activate venv: https://python.land/virtual-environments/virtualenv
 - Install requirements from requirements.txt.
 
 ## Controlling the Signal Generator

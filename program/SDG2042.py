@@ -1,5 +1,4 @@
 import pyvisa
-import pyvisa_py
 
 class SDG2042:
   def __init__(self):

@@ -1,6 +1,5 @@
 import pyvisa
 import pyvisa.constants
-import pyvisa_py
 import time
 
 class HP8591:
@@ -14,9 +13,6 @@ class HP8591:
 
     # Set defaults.
     self.reset()
-
-    # Always use single sweep mode.
-    self._inst.write("SNGLS;")
   
   def __del__(self):
     # For GPIB devices, return control back to the instrument's front panel (aka. local mode).
@@ -31,7 +27,11 @@ class HP8591:
 
   ## Return the instrument to it's default state with output off.
   def reset(self):
+    # "Instrument Preset"
     self._inst.write("IP;")
+
+    # Wait for reset to finish (experimental value).
+    time.sleep(4)
 
   def get_peak_amplitude(self, center_frequency, span):
     # Set center frequency.
@@ -44,13 +44,11 @@ class HP8591:
     # Set sweep time.
     sweep_time_ms = 1000
     self._inst.write("ST {}MS;".format(sweep_time_ms))
-
    
     # NOTE: Normally, the "TS;" command (take sweep) is used to do a sweep and block
     # this thread as long as the sweep takes. However, it results in a VISA IO error
-    # without waiting at all. So instead we will set a known sweep time and wait slightly
-    # longer.
-
+    # without blocking at all. So instead we will set a known sweep time and wait slightly
+    # longer than that.
     # # Set single sweep mode
     # self._inst.write("SNGLS;")
     # # Take a sweep.
