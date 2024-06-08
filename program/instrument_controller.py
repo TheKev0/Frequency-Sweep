@@ -24,6 +24,7 @@ class Worker(QtCore.QObject):
   def run(self, title, input_amp, start, end, step):
     # self.function(*self.args, **self.kwargs)
     self.function(title, input_amp, start, end, step)
+    self.finished.emit()
 
 # The GUI
 class MyWidget(QtWidgets.QWidget):
@@ -50,6 +51,15 @@ class MyWidget(QtWidgets.QWidget):
     self.layout.addRow(self._button)
     self._button.clicked.connect(self.button_pressed)
 
+    # Create a QThread and Worker object to do work asynchronously.
+    # Reference: https://stackoverflow.com/questions/20324804/how-to-use-qthread-correctly-in-pyqt-with-movetothread
+    # Reference: https://realpython.com/python-pyqt-qthread/
+    self.worker_thread = QtCore.QThread()
+    self.worker_thread.start()
+    self.worker = Worker(self.run_freq_sweep)
+    self.worker.finished.connect(self.on_completion)
+    self.worker.moveToThread(self.worker_thread)
+
   @QtCore.Slot()
   def button_pressed(self):
     # Read inputs
@@ -59,28 +69,21 @@ class MyWidget(QtWidgets.QWidget):
     end = int(self._line_edit_freq_end.text())
     step = int(self._line_edit_freq_step.text())
     input_amp = float(self._line_edit_input_amp.text())
+    print("")
+    print("Starting Test")
     print("Frequency Sweep: {}Hz to {}Hz, Stepping {}Hz. Input Amplitude {}Vpp".format(
         start, end, step, input_amp))
     
     # Disable the window to prevent user input.
     self.setEnabled(False)
 
-    # Do the work on another thread.
-    # Reference: https://stackoverflow.com/questions/20324804/how-to-use-qthread-correctly-in-pyqt-with-movetothread
-    # Reference: https://realpython.com/python-pyqt-qthread/
-    # Create a QThread and Worker object
-    self.worker_thread = QtCore.QThread()
-    self.worker_thread.start()
-
-    # Run the worker in a new thread.
-    self.worker = Worker(self.run_freq_sweep)
-    self.worker.finished.connect(self.on_completion)
-    self.worker.moveToThread(self.worker_thread)
+    # Start the measurement in another thread to not block the GUI.
     self.worker.start.emit(title, input_amp, start, end, step)
 
   def run_freq_sweep(self, title, input_amp, start, end, step):
     # Run the frequency sweep.
     amplitudes = frequency_response_measure(input_amp, start, end, step)
+    print("Raw Values: ", end="")
     print(amplitudes)
 
     # Graph it.
@@ -111,7 +114,7 @@ def frequency_response_measure(input_amplitude_vpp, start_frequency_hz, end_freq
     # Set center frequency, span and bandwidth
     peak_freq, peak_amp = spec_analyzer.get_peak_amplitude(
         center_frequency=freq, span=10000)
-    print("freq={}Hz peak_freq={}Hz peak_amp={}dBm".format(freq, peak_freq, peak_amp))
+    print("Nominal Freq={}Hz Peak Freq={}Hz Peak Amp={}dBm".format(freq, peak_freq, peak_amp))
 
     amplitudes.update({peak_freq: peak_amp})
 

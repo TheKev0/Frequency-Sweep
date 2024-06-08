@@ -1,10 +1,27 @@
 import pyvisa
+import re
 
 class SDG2042:
   def __init__(self):
     # Open the connection.
     self._rm = pyvisa.ResourceManager()
-    self._inst = self._rm.open_resource('USB0::0xF4EC::0x1102::SDG2XFBQ7R2430::INSTR')
+    
+    # Find the instrument address by regular expression
+    # Expected hard coded value: "USB0::0xF4EC::0x1102::SDG2XFBQ7R2430::INSTR"
+    # self._inst = self._rm.open_resource('USB0::0xF4EC::0x1102::SDG2XFBQ7R2430::INSTR')
+    resources = self._rm.list_resources()
+    address = ""
+    for resource in resources:
+      match = re.search("USB0::.*SDG2.*::INSTR", resource)
+      if match is not None:
+        address = match.group()
+        self._inst = self._rm.open_resource(address)
+        break
+    if self._inst is not None:
+      print("Connected to signal generator: {}".format(address))
+    else:
+      print("Could NOT connect to signal generator!")
+
 
     # Set defaults.
     self.reset()

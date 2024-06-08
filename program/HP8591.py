@@ -1,13 +1,30 @@
 import pyvisa
 import pyvisa.constants
 import time
+import re
 
 class HP8591:
 
   def __init__(self):
     # Open the connection.
     self._rm = pyvisa.ResourceManager()
-    self._inst = self._rm.open_resource('GPIB0::8::INSTR',access_mode=pyvisa.constants.AccessModes.exclusive_lock)
+
+    # Find the instrument address by regular expression
+    # Expected hard coded value: "GPIB0::8::INSTR"
+    # self._inst = self._rm.open_resource('GPIB0::8::INSTR',access_mode=pyvisa.constants.AccessModes.exclusive_lock)
+    resources = self._rm.list_resources()
+    address = ""
+    for resource in resources:
+      match = re.search("GPIB0::.*::INSTR", resource)
+      if match is not None:
+        address = match.group()
+        self._inst = self._rm.open_resource(address)
+        break
+    if self._inst is not None:
+      print("Connected to spectrum analyzer: {}".format(address))
+    else:
+      print("Could NOT connect to spectrum analyzer!")
+
     # self._inst.write_termination = "\r"
     # self._inst.send_end = True
 
