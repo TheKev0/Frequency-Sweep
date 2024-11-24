@@ -1,7 +1,11 @@
+import datetime
 import time
 import sys
+import pandas
 import plotly.graph_objects as go
 from PySide6 import QtCore, QtWidgets, QtGui
+import random
+import os
 
 import SDG2042
 import HP8591
@@ -129,6 +133,14 @@ def frequency_response_graph(title="Frequency Response", frequencies=(), amplitu
     yaxis_title="Amplitude [dBm]",
   )
   fig.show()
+
+  # Export data to CSV.
+  df = pandas.DataFrame({'Frequency': frequencies, 'Amplitude [dBm]': amplitudes})
+  filename = "{}_{}.csv".format(title, datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S"))
+  dirname = os.path.dirname(sys.argv[0])
+  filepath = os.path.join(dirname, filename)
+  df.to_csv(filepath, index=False)
+  print("Saved Data to: {}", filepath)
 
 if __name__ == "__main__":
     app = QtWidgets.QApplication([])
