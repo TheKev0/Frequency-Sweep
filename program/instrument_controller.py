@@ -146,7 +146,7 @@ if __name__ == "__main__":
     app = QtWidgets.QApplication([])
 
     widget = MyWidget()
-    widget.setWindowTitle("Frequency Response")
+    widget.setWindowTitle("Frequency Response v0.3")
     widget.show()
 
     sys.exit(app.exec())
