@@ -4,6 +4,7 @@ import sys
 import pandas
 import plotly.graph_objects as go
 from PySide6 import QtCore, QtWidgets, QtGui
+from pathvalidate import sanitize_filename
 import random
 import os
 
@@ -124,6 +125,24 @@ def frequency_response_measure(input_amplitude_vpp, start_frequency_hz, end_freq
 
   return amplitudes
 
+
+def write_to_csv(data_title, frequencies, amplitudes, path=None):
+  # Convert to datafame.
+  df = pandas.DataFrame({'Frequency': frequencies, 'Amplitude [dBm]': amplitudes})
+
+  # If path is not provided, put the file next to the executable.
+  if path is None:
+    path = os.path.dirname(sys.argv[0])
+
+  # Use title and timestamp as filename, and sanitize.
+  filename = "{}_{}.csv".format(data_title, datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S"))
+  filename = os.path.basename(sanitize_filename(filename=filename, replacement_text="-"))
+  filepath = os.path.join(path, filename)
+
+  # Write to file.
+  df.to_csv(filepath, index=False)
+  print("Saved Data to: {}", filepath)
+
 def frequency_response_graph(title="Frequency Response", frequencies=(), amplitudes=()):
   fig = go.Figure()
   fig.add_trace(go.Scatter(x=frequencies, y=amplitudes))
@@ -134,13 +153,7 @@ def frequency_response_graph(title="Frequency Response", frequencies=(), amplitu
   )
   fig.show()
 
-  # Export data to CSV.
-  df = pandas.DataFrame({'Frequency': frequencies, 'Amplitude [dBm]': amplitudes})
-  filename = "{}_{}.csv".format(title, datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S"))
-  dirname = os.path.dirname(sys.argv[0])
-  filepath = os.path.join(dirname, filename)
-  df.to_csv(filepath, index=False)
-  print("Saved Data to: {}", filepath)
+  write_to_csv(title, frequencies, amplitudes)
 
 if __name__ == "__main__":
     app = QtWidgets.QApplication([])
